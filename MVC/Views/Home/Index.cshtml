@@ -1,0 +1,111 @@
+﻿@using PagedList.Mvc;
+@model PagedList.IPagedList<WebApi.Models.Produto>
+
+<link href="~/Content/PagedList.css" rel="stylesheet" type="text/css" />
+<script src="~/Scripts/jquery-1.10.2.min.js"></script>
+
+@{
+    ViewBag.Title = "Página Inicial";
+}
+
+<div class="row">
+    <p>
+        Procurar:
+    </p>
+    <input type="text" id="Procurar" name="Procurar" class="form-control" />
+</div>
+
+<br />
+
+<div class="row">
+    <table class="table">
+        <tr>
+            <th>
+                @Html.ActionLink("Nome Produto", "Index", new { sortOrder = ViewBag.NameSortParm, currentFilter = ViewBag.CurrentFilter })
+            </th>
+            <th>
+                @Html.ActionLink("Preço", "Index", new { sortOrder = ViewBag.DateSortParm, currentFilter = ViewBag.CurrentFilter })
+            </th>
+            <th>
+                @Html.ActionLink("Marca", "Index", new { sortOrder = ViewBag.DateSortParm, currentFilter = ViewBag.CurrentFilter })
+            </th>
+            <th></th>
+        </tr>
+
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.NomeProduto)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Preco)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.NomeMarca)
+                </td>
+            </tr>
+        }
+    </table>
+</div>
+
+<br />
+
+<div class="row" id="Paginas">
+    Página @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) of @Model.PageCount
+
+    @Html.PagedListPager(Model, page => Url.Action("Index", new { page, sortOrder = ViewBag.CurrentSort, currentFilter = ViewBag.CurrentFilter }))
+</div>
+
+<script>
+    $(document).ready(function () {
+        function GerarTable(data) {
+            $('.table').find("tr:gt(0)").remove();
+            $('#Paginas').hide();
+
+            for (var posicao in data) {
+                var linha = "<tr><td>" + data[posicao].NomeProduto + "</td><td>" + data[posicao].Preco + "</td><td>" + data[posicao].NomeMarca + "</td></tr>";
+
+                $("table tbody").append(linha);
+            }
+        }
+
+
+        $('#Procurar').keyup(function () {
+            if ($('#Procurar').val().length >= 3) {
+                var texto = $('#Procurar').val().toLowerCase();
+
+                $.ajax(
+                {
+                    type: 'GET',
+                    url: 'http://localhost/WebApi/Produto/RetornaListaPorNome?pNomeProduto=' + texto,
+                    dataType: 'json',
+                    cache: false,
+                    async: true,
+                    success: function (data) {
+                        GerarTable(data);
+                    },
+                    error: function (data) {
+                        alert('Ocorreu um erro');
+                    }
+                });
+            }
+            else {
+                $.ajax(
+                {
+                    type: 'GET',
+                    url: 'http://localhost/WebApi/Produto/RetornaListaPorNome',
+                    dataType: 'json',
+                    cache: false,
+                    async: true,
+                    success: function (data) {
+                        GerarTable(data);
+                    },
+                    error: function (data) {
+                        alert('Ocorreu um erro');
+                    }
+                });
+            }
+        });
+    });
+</script>
